@@ -7,7 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<string>();
   const router = useRouter();
-  const next = useSearchParams().get('next') || '/reservations';
+  const next = useSearchParams().get('next') || '/spaces';
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
