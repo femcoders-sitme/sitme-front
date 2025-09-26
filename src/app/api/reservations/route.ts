@@ -1,6 +1,6 @@
 // app/api/reservations/route.ts
 import { cookies } from 'next/headers';
-const BACKEND = process.env.BACKEND_API_URL!;
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL!;
 const COOKIE = process.env.JWT_COOKIE_NAME || 'pt_jwt';
 
 export async function GET() {
