@@ -2,7 +2,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const BACKEND = process.env.BACKEND_API_URL!;
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL!;
 const COOKIE = process.env.JWT_COOKIE_NAME || 'pt_jwt';
 
 export async function POST(req: NextRequest) {
