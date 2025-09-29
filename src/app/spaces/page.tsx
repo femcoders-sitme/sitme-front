@@ -5,19 +5,17 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL!;
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [error, setError] = useState<string>();
-  const [filter, setFilter] = useState<'ALL' | 'AVAILABLE' | 'ROOM' | 'TABLE'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'ROOM' | 'TABLE'>('ALL');
 
   type Space = {
     name: string;
     capacity: number;
     type: string;
-    available: boolean;
     imageUrl?: string;
   };
 
   const fetchSpaces = async (f: typeof filter) => {
     let url = `${BACKEND}/api/spaces`;
-    if (f === 'AVAILABLE') url = `${BACKEND}/api/spaces/filter/available`;
     if (f === 'ROOM') url = `${BACKEND}/api/spaces/filter/type?type=ROOM`;
     if (f === 'TABLE') url = `${BACKEND}/api/spaces/filter/type?type=TABLE`;
 
@@ -41,7 +39,7 @@ export default function SpacesPage() {
     <main className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Spaces</h1>
       <div className="flex gap-2 mb-4">
-        {['ALL', 'AVAILABLE', 'ROOM', 'TABLE'].map(f => (
+        {['ALL', 'ROOM', 'TABLE'].map(f => (
           <button
             key={f}
             onClick={() => setFilter(f as typeof filter)}
@@ -53,8 +51,6 @@ export default function SpacesPage() {
           >
             {f === 'ALL'
               ? 'All'
-              : f === 'AVAILABLE'
-              ? 'Available'
               : f === 'ROOM' 
               ? 'Rooms'
               : 'Tables'}
@@ -75,15 +71,6 @@ export default function SpacesPage() {
                     }`}
                 >
                     {space.type}
-                </span>
-                <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                    space.available
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                >
-                    {space.available ? 'Available' : 'Not Available'}
                 </span>
                 </div>
             </div>
