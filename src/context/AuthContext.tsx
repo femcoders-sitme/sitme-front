@@ -24,26 +24,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("pt_jwt");
-    if (saved) login(saved);
-  }, []);
+    useEffect(() => {
+        const saved = localStorage.getItem("pt_jwt");
+        if (saved) login(saved);
+    }, []);
 
-  function login(newToken: string) {
+    function login(newToken: string) {
     try {
-      const decoded = jwtDecode<JwtPayload>(newToken);
-      const now = Date.now() / 1000;
-      if (decoded.exp && decoded.exp < now) {
+        const decoded = jwtDecode<JwtPayload>(newToken);
+        const now = Date.now() / 1000;
+        if (decoded.exp && decoded.exp < now) {
         logout();
         return;
-      }
-      setToken(newToken);
-      setRole(decoded.role ?? null);
-      localStorage.setItem("pt_jwt", newToken);
+        }
+
+        let parsedRole: string | null = null;
+        if (decoded.role) {
+        if (decoded.role.includes("ADMIN")) parsedRole = "ADMIN";
+        else if (decoded.role.includes("USER")) parsedRole = "USER";
+        }
+
+        setToken(newToken);
+        setRole(parsedRole);
+        localStorage.setItem("pt_jwt", newToken);
     } catch {
-      logout();
+        logout();
     }
-  }
+    }
 
   function logout() {
     setToken(null);
