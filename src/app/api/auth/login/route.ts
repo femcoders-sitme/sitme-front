@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   const response = NextResponse.json({ ok: true, ...data }, { status: 200 });
   response.cookies.set(COOKIE, token, {
-    httpOnly: true,
+    httpOnly: false,
     path: '/',
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
