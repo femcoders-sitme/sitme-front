@@ -13,6 +13,7 @@ export default function SpacePage({ params }: { params: Promise<{ id: string }> 
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("MORNING");
   const [message, setMessage] = useState<string>();
+  const [reservationStatus, setReservationStatus] = useState<"success" | "conflict" | "error" | null>(null);
   const [showModal, setShowModal] = useState(false);
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
@@ -50,13 +51,27 @@ export default function SpacePage({ params }: { params: Promise<{ id: string }> 
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Reservation failed");
-
+    if (res.status === 201) {
+      setReservationStatus("success");
       setMessage("Reservation created successfully ✅");
       openModal();
       router.refresh();
-    } catch {
-      setMessage("Error creating reservation ❌");
+      return;
+    }
+
+    if (res.status === 409) {
+      setReservationStatus("conflict");
+      setMessage("This space is already booked for that date and time ❌ Please choose another one.");
+      openModal();
+      return;
+    }
+
+    throw new Error("Reservation failed");
+
+    } catch (error) {
+      setReservationStatus("error");
+      setMessage("Unexpected error creating reservation ❌");
+      openModal();
     }
   };
 
@@ -141,7 +156,7 @@ export default function SpacePage({ params }: { params: Promise<{ id: string }> 
       </main>
       {showModal && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={closeModal}
         >
           <div
@@ -149,7 +164,9 @@ export default function SpacePage({ params }: { params: Promise<{ id: string }> 
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold mb-1 text-center text-gray-800">
-              Reservation Created
+              {reservationStatus === "success" && "Reservation Created"}
+              {reservationStatus === "conflict" && "Reservation Unavailable"}
+              {reservationStatus === "error" && "Reservation Failed"}
             </h3>
             <p className="text-sm text-gray-600 text-center">{message}</p>
           </div>
