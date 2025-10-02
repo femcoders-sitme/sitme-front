@@ -9,7 +9,6 @@ type User = {
   email: string;
   role: string;
   imageUrl?: string;
-  cloudinaryImageUrl?: string;
 };
 
 export default function UsersPage() {
@@ -66,9 +65,9 @@ export default function UsersPage() {
               className="border rounded p-4 bg-white shadow hover:shadow-md transition"
             >
               <div className="flex items-center gap-3">
-                {u.cloudinaryImageUrl ? (
+                {u.imageUrl ? (
                   <img
-                    src={u.cloudinaryImageUrl}
+                    src={u.imageUrl}
                     alt={u.username}
                     className="w-12 h-12 rounded-full object-cover"
                   />
