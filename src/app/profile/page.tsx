@@ -41,29 +41,17 @@ export default function ProfilePage() {
 
         const formData = new FormData();
         
-        // Preparar el objeto user eliminando el password si está vacío
         const userPayload = {
             username: form.username,
             email: form.email,
             ...(form.password && form.password.trim() !== "" ? { password: form.password } : {})
         };
-        
-        console.log("📝 User payload:", userPayload);
-        
-        // Crear el Blob con el tipo correcto y nombre explícito
+
         const userBlob = new Blob([JSON.stringify(userPayload)], { type: "application/json" });
         formData.append("user", userBlob, "user.json");
 
         if (image) {
-            console.log("📦 Enviando imagen nueva:", image.name, "size:", image.size, "type:", image.type);
-            formData.append("file", image); // IMPORTANTE: debe ser "file" para coincidir con el backend
-        } else {
-            console.log("⚠️ No hay imagen nueva para enviar");
-        }
-
-        console.log("=== VERIFICACIÓN FORMDATA ===");
-        for (const pair of formData.entries()) {
-            console.log("🧪 FormData:", pair[0], pair[1]);
+            formData.append("file", image);
         }
 
         try {
@@ -74,25 +62,21 @@ export default function ProfilePage() {
             });
 
             const data = await res.json();
-            console.log("✅ Update response:", res.status, data);
 
             if (!res.ok) {
                 throw new Error(`Update failed (${res.status}): ${data?.message || "Unknown error"}`);
             }
 
-            // Refrescar el perfil para obtener la nueva imagen
             const refreshed = await fetch(`${BACKEND}/api/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const newData = await refreshed.json();
-            console.log("🔄 Profile refreshed:", newData.data);
-            setProfile(newData.data);
 
+            setProfile(newData.data);
             setEditing(false);
             setImage(null);
             setInputKey(Date.now());
         } catch (error) {
-            console.error("❌ Error updating profile:", error);
             alert("Error updating profile: " + (error as Error).message);
         }
     };
