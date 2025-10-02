@@ -26,35 +26,57 @@ export default function MyReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (token === null) return;
-
+  const fetchReservations = async () => {
     if (!isLoggedIn || !token) {
       setLoading(false);
       setError("You must log in to view your reservations");
       return;
     }
 
-    const fetchReservations = async () => {
-      try {
-        const res = await fetch(`${BACKEND}/api/reservations/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch reservations");
-        }
-        const data = await res.json();
-        setReservations(data.data || []);
-      } catch {
-        setError("Error loading reservations");
-      } finally {
-        setLoading(false);
+    try {
+      const res = await fetch(`${BACKEND}/api/reservations/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch reservations");
       }
-    };
+      const data = await res.json();
+      setReservations(data.data || []);
+    } catch {
+      setError("Error loading reservations");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    if (token === null) return;
     fetchReservations();
   }, [isLoggedIn, token]);
+
+  const handleCancelReservation = async (id: number) => {
+    if (!confirm("Are you sure you want to cancel this reservation?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND}/api/reservations/${id}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to cancel reservation");
+      }
+
+      await fetchReservations();
+      alert("Reservation cancelled successfully");
+    } catch (err) {
+      alert(`Error: ${(err as Error).message}`);
+    }
+  };
 
   if (loading) return <p className="p-6">Loading...</p>;
   if (error) return <p className="p-6 text-red-600">{error}</p>;
@@ -97,6 +119,15 @@ export default function MyReservationsPage() {
               <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-500">
                 {r.status}
               </p>
+              
+              {r.status === "ACTIVE" && (
+                <button
+                  onClick={() => handleCancelReservation(r.id)}
+                  className="mt-3 w-full px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition"
+                >
+                  Cancel Reservation
+                </button>
+              )}
             </li>
           ))}
         </ul>
