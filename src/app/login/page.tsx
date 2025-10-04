@@ -32,48 +32,53 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-sm p-6">
-      <h1 className="font-sans text-2xl font-semibold mb-4">Login</h1>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Username o Email"
-          value={id}
-          onChange={e=>setId(e.target.value)}
-        />
-
-        <div className="relative">
-          <input
-            className="w-full border p-2 rounded pr-10"
-            placeholder="Password"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={e=>setPassword(e.target.value)}
-          />
+    <main className="min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-pink-50 to-white">
+      <div className="bg-white rounded-2xl shadow-xl px-8 py-10 w-full max-w-md">
+        <h1 className="text-3xl font-extrabold mb-6 text-gray-900 text-left">
+          <span className="text-pink-600">Login</span> to SitMe
+        </h1>
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Username or Email</label>
+            <input
+              className="w-full border-b-2 border-gray-300 focus:border-pink-500 outline-none bg-transparent py-2 px-1 text-base transition-all"
+              placeholder="Enter your username or email"
+              value={id}
+              onChange={e=>setId(e.target.value)}
+            />
+          </div>
+          <div className="relative">
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Password</label>
+            <input
+              className="w-full border-b-2 border-gray-300 focus:border-pink-500 outline-none bg-transparent py-2 px-1 text-base pr-10 transition-all"
+              placeholder="Enter your password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e=>setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-8 text-lg text-gray-400 hover:text-pink-600"
+              tabIndex={-1}
+            >
+              {showPassword ? '🙈' : '👁'}
+            </button>
+          </div>
+          {err && <p className="text-red-600 text-sm">{err}</p>}
           <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600 hover:text-pink-600"
+            className="w-full rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 text-lg shadow transition-all"
           >
-            {showPassword ? '🙈' : '👁'}
+            Login
           </button>
-        </div>
-
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-
-        <button             
-        className="rounded-full border border-transparent transition-colors flex items-center justify-center font-medium text-base h-12 px-6 w-full"
-            style={{
-              backgroundColor: "#E20074",
-              color: "white",
-            }}>SitMe!</button>
-      </form>
-      <p className="mt-4 text-center text-sm text-gray-600">
-        Don't have an account?{" "}
-        <a href="/register" className="text-pink-600 font-medium hover:underline">
-          Register here
-        </a>
-      </p>
+        </form>
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Don't have an account?{' '}
+          <a href="/register" className="text-pink-600 font-semibold hover:underline">
+            Register here
+          </a>
+        </p>
+      </div>
     </main>
   );
 }
