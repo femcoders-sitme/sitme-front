@@ -155,8 +155,8 @@ Route Handlers (under app/api/*) forward requests to the backend and attach the 
 
 ## Team
 
-- **Débora Rubio** – Team Leader and Scrum Master
-- **Lara Pla** – Product Owner
+- **Débora Rubio** – Team Leader and Scrum Master and Developer
+- **Lara Pla** – Product Owner and Developer
 - **Mariia Sycheva** – Developer
 - **Mayleris Echezuria** – Developer
 - **Vita Poperechna** – Developer
