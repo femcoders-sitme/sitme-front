@@ -18,41 +18,64 @@ type Reservation = {
   spaceName: string;
 };
 
+type Space = {
+  id: number;
+  name: string;
+  imageUrl?: string;
+};
+
+type User = {
+  username: string;
+  imageUrl?: string;
+};
+
 const tabs: Array<'ACTIVE' | 'COMPLETED' | 'CANCELLED'> = ['ACTIVE', 'COMPLETED', 'CANCELLED'];
 
 export default function ReservationsPage() {
   const { token } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED' | 'CANCELLED'>('ACTIVE');
   const [search, setSearch] = useState('');
 
-  const fetchReservations = async () => {
+  const fetchAllData = async () => {
     try {
-      const res = await fetch(`${BACKEND}/api/reservations`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
-      
-      if (!res.ok) throw new Error('Error fetching reservations');
-      
-      const data = await res.json();
-      setReservations(data.data || []);
-    } catch {
-      setError('Error fetching reservations');
+      setLoading(true);
+
+      const [res1, res2, res3] = await Promise.all([
+        fetch(`${BACKEND}/api/reservations`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch(`${BACKEND}/api/spaces`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch(`${BACKEND}/api/users`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }),
+      ]);
+
+      const [reservationsData, spacesData, usersData] = await Promise.all([
+        res1.json(),
+        res2.json(),
+        res3.json(),
+      ]);
+
+      setReservations(Array.isArray(reservationsData.data) ? reservationsData.data : reservationsData);
+      setSpaces(Array.isArray(spacesData) ? spacesData : spacesData.data || []);
+      setUsers(Array.isArray(usersData) ? usersData : usersData.data || []);
+
+    } catch (err) {
+      console.error("❌ Error fetching data:", err);
+      setError("Error loading reservations data");
+    } finally {
+      setLoading(false);
     }
   };
 
+
   useEffect(() => {
-    if (token) {
-      fetchReservations();
-    }
+    if (token) fetchAllData();
   }, [token]);
 
   const handleDeleteReservation = async (id: number, username: string, spaceName: string) => {
-    if (!confirm(`Are you sure you want to delete ${username}'s reservation for ${spaceName}?`)) {
-      return;
-    }
+    if (!confirm(`Are you sure you want to delete ${username}'s reservation for ${spaceName}?`)) return;
 
     try {
       const res = await fetch(`${BACKEND}/api/reservations/${id}`, {
@@ -65,12 +88,20 @@ export default function ReservationsPage() {
         throw new Error(errorData.message || "Failed to delete reservation");
       }
 
-      await fetchReservations();
+      await fetchAllData();
       alert("Reservation deleted successfully");
     } catch (err) {
       alert(`Error: ${(err as Error).message}`);
     }
   };
+
+  if (loading) {
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-400 border-t-transparent" />
+      </main>
+    );
+  }
 
   if (error) return <p className="text-red-600 p-6">{error}</p>;
 
@@ -79,7 +110,7 @@ export default function ReservationsPage() {
     .filter(r => r.username.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <main className="p-6 max-w-4xl mx-auto">
+    <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">Reservations Management</h1>
 
       <div className="flex gap-4 mb-6">
@@ -107,34 +138,67 @@ export default function ReservationsPage() {
       {filtered.length === 0 ? (
         <p>There are no {activeTab.toLowerCase()} reservations matching the search.</p>
       ) : (
-        <ul className="space-y-3">
-          {filtered.map((res) => (
-            <li key={res.id} className="border p-4 rounded-lg bg-white shadow-sm hover:shadow transition">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="font-medium text-pink-600">
-                    {res.username} → {res.spaceName}
-                  </div>
-                  <div className="text-sm opacity-70 mt-1">
-                    {res.reservationDate} · {res.timeSlot} · Status: {res.status}
-                  </div>
-                  <div className="text-sm mt-1">
-                    Email sent: {res.emailSent ? '✅ Yes' : '❌ No'}
-                  </div>
-                  <div className="text-xs opacity-60 mt-1">
-                    Created: {new Date(res.createdAt).toLocaleString()}
-                  </div>
-                </div>
-                
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((res) => {
+            const space = spaces.find(s => s.id === Number(res.spaceId));
+            const user = users.find(u => u.username === res.username);
+            const spaceImageUrl = space?.imageUrl;
+            const userImageUrl = user?.imageUrl;
+
+            return (
+              <li
+                key={res.id}
+                className="relative rounded-3xl overflow-hidden min-h-[240px] border border-gray-200 shadow-lg hover:shadow-2xl transition"
+                style={{
+                  backgroundImage: spaceImageUrl
+                    ? `linear-gradient(to top, rgba(255,255,255,0.60), rgba(255,255,255,0.55)), url(${spaceImageUrl})`
+                    : undefined,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+              <div className="relative z-10 p-6 flex flex-col justify-end h-full backdrop-blur-sm">
                 <button
                   onClick={() => handleDeleteReservation(res.id, res.username, res.spaceName)}
-                  className="ml-4 px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition"
+                  className="absolute top-4 right-4 bg-pink-600 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-pink-700 transition shadow-md"
                 >
                   Delete
                 </button>
-              </div>
-            </li>
-          ))}
+                  <div className="flex gap-2 items-center text-sm mt-2 justify-between">
+                    <h2 className="text-xl font-extrabold text-gray-800">{res.spaceName}</h2>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      res.status === 'ACTIVE'
+                        ? 'bg-green-100 text-green-700'
+                        : res.status === 'COMPLETED'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {res.status}
+                    </span>
+                  </div>
+                <div className="flex items-center gap-3 mb-3 mt-2">
+                  {userImageUrl ? (
+                    <img
+                      src={userImageUrl}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
+                      alt={res.username}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-pink-600 font-bold text-lg border-2 border-pink-400 shadow">
+                      {res.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-pink-700 text-base">{res.username}</h3>
+                    <p className="text-gray-600 text-sm">
+                      {res.reservationDate} · {res.timeSlot}
+                    </p>
+                  </div>
+                </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
