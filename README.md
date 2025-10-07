@@ -108,16 +108,26 @@ src/
  ├─ app/
  │   ├─ api/
  │   │   ├─ auth/
- │   │   │   ├─ login/route.ts     # POST login → proxies to backend
+ │   │   │   ├─ login/route.ts     # POST login
  │   │   │   ├─ logout/route.ts    # POST logout (clear cookie)
- │   │   │   └─ me/route.ts        # GET current user (optional helper)
- │   │   └─ reservations/route.ts  # GET/POST reservations → proxy
+ │   │   │   └─ logout/route.ts    # POST register
+ │   │   │  reservations/route.ts  # GET/POST reservations
+ │   │   └─ spaces/route.ts        # GET/POST spaces
  │   ├─ login/page.tsx             # Login page
+ │   ├─ my-reservations/page.tsx   # User reservations page
+ │   ├─ profile/page.tsx           # User profile page
+ │   ├─ register/page.tsx          # Register page
  │   ├─ reservations/page.tsx      # Admin-only reservations page
- │   ├─ spaces/                    # Spaces list (and optional [id] detail)
+ │   ├─ spaces/                    # Spaces
+ │   │   │  id/page.ts             # GET space by id
+ │   │   │   └─ edit/page.tsx      # UPDATE space
+ │   │   │  create/route.ts        # POST space
+ │   │   └─ page.tsx               # GET spaces
  │   └─ page.tsx                   # Home page
  ├─ components/
  │   └─ Header.tsx                 # Shared header / nav
+ ├─ context/
+ │   └─ AuthContext.tsx            # Auth Context for the app
  ├─ hooks/
  │   └─ useAuth.ts                 # Auth state & helpers
  └─ styles/                        # Global styles (Tailwind)
@@ -142,11 +152,27 @@ The frontend communicates with the SitMe backend (Spring Boot + MySQL).
 Typical endpoints consumed:
 
 ```bash
-POST /api/auth/login — authenticate and receive JWT.
-GET /api/spaces — fetch available spaces.
-GET /api/spaces/{id} — fetch a specific space detail.
-POST /api/reservations — create a reservation.
-GET /api/reservations — list reservations (ADMIN only).
+# Authentication
+POST   /api/auth/login           # Authenticate and receive JWT
+POST   /api/auth/logout          # Clear the session cookie
+GET    /api/auth/me              # Retrieve current logged-in user info
+
+# Users (ADMIN only)
+GET    /api/users                # Fetch all registered users
+DELETE /api/users/{username}     # Delete a user by username
+PUT    /api/users/{username}/image  # Update user profile image (Cloudinary upload)
+
+# Spaces
+GET    /api/spaces               # Fetch available spaces
+GET    /api/spaces/{id}          # Fetch details of a specific space
+
+# Reservations
+POST   /api/reservations         # Create a reservation
+GET    /api/reservations         # List all reservations (ADMIN only)
+DELETE /api/reservations/{id}    # Cancel a reservation (allowed for the owner or ADMIN)
+
+# Base URL
+${NEXT_PUBLIC_BACKEND_API_URL}
 ```
 
 Route Handlers (under app/api/*) forward requests to the backend and attach the Authorization: Bearer <token> header when a JWT cookie exists.
